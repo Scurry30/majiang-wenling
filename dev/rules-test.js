@@ -1,0 +1,118 @@
+/*
+ *  规则细节自检：食替、财神归位、局数/本场、吃牌方向。
+ *    node dev/rules-test.js
+ */
+"use strict";
+
+const Wenling = require('../lib');
+const Game    = require('../lib/game');
+const Shoupai = require('../lib/shoupai');
+
+const rule = Wenling.rule();
+const J = 'f1';        // 不存在的财神种 = 没有财神
+
+function parse(s) {
+    const rv = [];
+    let suit = null;
+    for (const ch of s.replace(/[\s,]/g, '')) {
+        if ('mpsz'.includes(ch)) suit = ch;
+        else rv.push(suit + ch);
+    }
+    return rv;
+}
+
+let fail = 0;
+function eq(name, got, want) {
+    const ok = got === want;
+    console.log(`${ok ? '✓' : '✗'} ${name}: ${got}${ok ? '' : `（期望 ${want}）`}`);
+    if (!ok) fail++;
+}
+function ok(name, cond, extra = '') {
+    console.log(`${cond ? '✓' : '✗'} ${name}${cond ? '' : '  ' + extra}`);
+    if (!cond) fail++;
+}
+
+const HAND = 'm1 m2 p1 p2 p3 s1 s2 s3 z1 z2 z5 z6 m5 m6 m7 m8';
+
+(async () => {
+
+    /* ---------- 1. 食替 ---------- */
+    console.log('--- 食替（吃后不能立刻打刚吃进的牌）---');
+    {
+        const s = Shoupai.from(parse('m1 m2 m3 m5 p1 p2 p3 p4 s1 s2 s3 z1 z2 z5 m9'), rule, J);
+        s.fulou_chi('m1', 'm2', 'm3', 3);
+        s.set_kuikae('m3');
+        ok('刚吃的 m3 不能打', ! s.dapai_list.includes('m3'), s.dapai_list.join(','));
+        ok('其余牌照常能打', s.dapai_list.includes('m5'));
+
+        s.set_kuikae(null);
+        ok('解除限制后 m3 可以打', s.dapai_list.includes('m3'));
+    }
+
+    /* ---------- 2. 财神归位 ---------- */
+    console.log('\n--- 财神归位 ---');
+    {
+        const game = new Game(rule, {}, { seed: 1 });
+        game.kaiju();
+        game._joker  = 'p6';       // 财神种
+        game._zhuang = 0;
+        /* p6 就在 p456 这个顺子里，不需要它当万能牌 */
+        game._hands[0] = Shoupai.from(parse('m123 m456 m789 p456 p789 z1'), rule, 'p6');
+        const r = game._hule(0, { win_tile: 'z1' });
+        const names = r.score.tai_list.map(t => t.name);
+        ok('识别为财神归位', names.includes('财神归位'), names.join(','));
+        eq('归位加 1 台', r.score.tai_list.find(t => t.name === '财神归位').tai, rule['财神归位台']);
+    }
+
+    /* ---------- 3. 局数 / 本场 ---------- */
+    console.log('\n--- 局数 / 本场 ---');
+    {
+        const g1 = new Game(rule, {}, { seed: 2 });
+        g1.kaiju();
+        g1._zhuang = 0;
+        g1._hands[0] = Shoupai.from(parse('m123 m456 m789 p456 p789 z1'), rule, J);
+        g1._hule(0, { win_tile: 'z1' });
+        eq('庄家和牌后仍是庄', g1.zhuang, 0);
+        eq('本场 +1', g1.changbang, 1);
+        eq('局数不变', g1.jushu, 0);
+
+        const g2 = new Game(rule, {}, { seed: 3 });
+        g2.kaiju();
+        g2._zhuang = 0;
+        g2._hands[1] = Shoupai.from(parse('m123 m456 m789 p456 p789 z1'), rule, J);
+        g2._hule(1, { win_tile: 'z1' });
+        eq('闲家和牌后庄家轮转', g2.zhuang, 1);
+        eq('局数 +1', g2.jushu, 1);
+        eq('本场清零', g2.changbang, 0);
+
+        const g3 = new Game(rule, {}, { seed: 4 });
+        g3.kaiju();
+        g3._zhuang = 0;
+        g3._jushu  = 2;
+        g3._pingju();
+        eq('流局下庄', g3.zhuang, 1);
+        eq('流局局数 +1', g3.jushu, 3);
+        eq('流局本场清零', g3.changbang, 0);
+        eq('局名', g3.jushu_name(), '东四局');
+    }
+
+    /* ---------- 4. 吃牌方向 ---------- */
+    console.log('\n--- 吃牌方向（吃上家）---');
+    {
+        const g = new Game(rule, { chi: (h, o) => o[0] }, { seed: 5 });
+        g.kaiju();
+        g._hands[0] = Shoupai.from(parse(HAND), rule, J);   // P3 的下家
+        g._hands[1] = Shoupai.from(parse(HAND), rule, J);
+        g._hands[2] = Shoupai.from(parse(HAND), rule, J);   // 不是下家，不该被问
+
+        const opts0 = g._hands[0].chi_options('m3');
+        ok('P0 有 m3 的吃法', opts0.length > 0, JSON.stringify(opts0));
+
+        const claim = await g._claim(3, 'm3');
+        eq('吃牌的只能是打牌者的下家（P0）', claim && claim.player, 0);
+        eq('宣言类型是吃', claim && claim.type, 'chi');
+    }
+
+    console.log(fail === 0 ? '\n✓ 全部通过' : `\n✗ ${fail} 项失败`);
+    process.exitCode = fail ? 1 : 0;
+})();
