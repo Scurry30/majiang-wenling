@@ -32,7 +32,7 @@ dev/test.js   多 seed 不变量测试
 
 - [x] P1 牌组 / 牌山 / 配牌 16-17 / 翻财神 / 补花
 - [x] P2 和牌判定（5 面子 + 将，含财神通配、听牌计算）
-- [ ] P3 胡头 / 台数 / 腊子 / 结算
+- [x] P3 胡头 / 台数 / 腊子 / 结算
 - [ ] P4 局进行（庄闲、连庄、流局、一炮一响）
 - [ ] P5 视图
 - [ ] P6 AI
@@ -43,4 +43,5 @@ dev/test.js   多 seed 不变量测试
 node dev/deal.js 20261122     # 打印一局配牌
 node dev/test.js 200          # 200 个 seed 的不变量测试
 node dev/hule-test.js         # 和牌判定用例
+node dev/score-test.js        # 胡头/台数/腊子/结算用例
 ```
