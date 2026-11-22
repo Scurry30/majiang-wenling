@@ -1,0 +1,12 @@
+{
+  "name": "majiang-wenling",
+  "version": "0.1.0",
+  "description": "温岭麻将规则引擎（144 张 / 16 张制 / 财神 / 胡头台数）",
+  "private": true,
+  "main": "lib/index.js",
+  "scripts": {
+    "deal": "node dev/deal.js"
+  },
+  "keywords": ["mahjong", "wenling"],
+  "license": "MIT"
+}
