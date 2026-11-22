@@ -37,6 +37,16 @@ dev/test.js   多 seed 不变量测试
 - [x] P5 视图（在 Majiang 仓库的 `wenling.html`）
 - [x] P6 AI（向听 + 有效牌 + 鸣牌判断）
 
+## 牌谱
+
+一局牌谱 = **开牌种子 + 每一步决策**（约 2-5 KB），不存逐帧快照。
+回放时用同一个种子重跑引擎、按顺序喂回决策，过程与当时完全一致；
+每条决策带签名，引擎改动导致错位会直接报错，不会静默出错。
+
+- 记录：`record_game(rule, policy, {seed})` → `{record, result, game}`
+- 回放：`replay_game(record)` → `{states, log, result}`，`states` 可逐手渲染
+- 界面：对局结算面板「回放这局」；历史在导航「温岭牌谱」（localStorage，最多 30 局）
+
 ## 运行
 
 ```bash
@@ -46,6 +56,8 @@ node dev/hule-test.js         # 和牌判定用例
 node dev/score-test.js        # 胡头/台数/腊子/结算用例
 node dev/game-test.js 100     # 100 局随机对局压力测试 + 规则单元
 node dev/ai-test.js 30        # AI 桌 vs 随机桌 的和牌率对比
+node dev/rules-test.js        # 食替 / 财神归位 / 局数本场 / 吃牌方向
+node dev/record-test.js       # 牌谱记录与回放一致性
 node dev/play.js 20261123     # 命令行打一局（打印全过程）
 ```
 
