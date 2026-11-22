@@ -49,43 +49,43 @@ function fmt(hand) {
     return s + f + m;
 }
 
-const seed  = process.argv[2] ? +process.argv[2] : 20261123;
-const quiet = process.argv.includes('--quiet');
+(async () => {
+    const seed  = process.argv[2] ? +process.argv[2] : 20261123;
+    const quiet = process.argv.includes('--quiet');
 
-const rule = Wenling.rule();
-const game = new Game(rule, random_policy(seed), { seed });
+    const rule = Wenling.rule();
+    const game = new Game(rule, random_policy(seed), { seed });
 
-if (! quiet) {
-    game._on_log = rec => {
-        const who = rec.player == null ? '  ' : `P${rec.player}`;
-        console.log(`${who} ${rec.action} ${rec.detail}`);
-    };
-}
-
-game.kaiju();
-
-if (! quiet) {
-    console.log(`\n财神: ${game.shan.joker}   牌墙: ${game.shan.paishu} 张\n`);
-    for (let i = 0; i < 4; i++) {
-        console.log(`P${i}(${game.seat_name(i)}) ${fmt(game.hands[i])}`);
+    if (! quiet) {
+        game._on_log = rec => {
+            const who = rec.player == null ? '  ' : `P${rec.player}`;
+            console.log(`${who} ${rec.action} ${rec.detail}`);
+        };
     }
-    console.log('');
-}
 
-const result = game.run();
+    game.kaiju();
 
-console.log('\n=== 结果 ===');
-if (result.type === 'hule') {
-    console.log(`P${result.winner}(${SEAT_NAME(result)}) ${result.zimo ? '自摸' : '荣和'}`);
-    console.log(`台数明细: ${result.score.tai_list.map(t => `${t.name}${t.tai}`).join(' ') || '无'}`);
-    console.log(`胡头 ${result.score.hutou} × 2^${result.score.tai} = ${result.score.defen}`);
-    if (result.score.lazi.length) console.log(`腊子: ${result.score.lazi.join('/')}`);
-}
-else {
-    console.log('流局');
-}
-console.log(`收支: ${result.delta.map((d, i) => `P${i}:${d >= 0 ? '+' : ''}${d}`).join('  ')}`);
-console.log(`累计: ${game.score.map((d, i) => `P${i}:${d >= 0 ? '+' : ''}${d}`).join('  ')}`);
-console.log(`（庄家下一局: P${game.zhuang}）`);
+    if (! quiet) {
+        console.log(`\n财神: ${game.shan.joker}   牌墙: ${game.shan.paishu} 张\n`);
+        for (let i = 0; i < 4; i++) {
+            console.log(`P${i}(${game.seat_name(i)}) ${fmt(game.hands[i])}`);
+        }
+        console.log('');
+    }
 
-function SEAT_NAME(r) { return ['东', '南', '西', '北'][r.menfeng] }
+    const result = await game.run();
+
+    console.log('\n=== 结果 ===');
+    if (result.type === 'hule') {
+        console.log(`P${result.winner}(${['东','南','西','北'][result.menfeng]}) ${result.zimo ? '自摸' : '荣和'}`);
+        console.log(`台数明细: ${result.score.tai_list.map(t => `${t.name}${t.tai}`).join(' ') || '无'}`);
+        console.log(`胡头 ${result.score.hutou} × 2^${result.score.tai} = ${result.score.defen}`);
+        if (result.score.lazi.length) console.log(`腊子: ${result.score.lazi.join('/')}`);
+    }
+    else {
+        console.log('流局');
+    }
+    console.log(`收支: ${result.delta.map((d, i) => `P${i}:${d >= 0 ? '+' : ''}${d}`).join('  ')}`);
+    console.log(`累计: ${game.score.map((d, i) => `P${i}:${d >= 0 ? '+' : ''}${d}`).join('  ')}`);
+    console.log(`（庄家下一局: P${game.zhuang}）`);
+})();
