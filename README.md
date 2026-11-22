@@ -33,9 +33,9 @@ dev/test.js   多 seed 不变量测试
 - [x] P1 牌组 / 牌山 / 配牌 16-17 / 翻财神 / 补花
 - [x] P2 和牌判定（5 面子 + 将，含财神通配、听牌计算）
 - [x] P3 胡头 / 台数 / 腊子 / 结算
-- [x] P4 局进行（摸打、吃碰杠、一炮一响、流局、连庄）
-- [ ] P5 视图
-- [ ] P6 AI
+- [x] P4 局进行（摸打、吃碰杠、一炮两响、流局、连庄）
+- [x] P5 视图（在 Majiang 仓库的 `wenling.html`）
+- [x] P6 AI（向听 + 有效牌 + 鸣牌判断）
 
 ## 运行
 
@@ -45,6 +45,7 @@ node dev/test.js 200          # 200 个 seed 的配牌不变量测试
 node dev/hule-test.js         # 和牌判定用例
 node dev/score-test.js        # 胡头/台数/腊子/结算用例
 node dev/game-test.js 100     # 100 局随机对局压力测试 + 规则单元
+node dev/ai-test.js 30        # AI 桌 vs 随机桌 的和牌率对比
 node dev/play.js 20261123     # 命令行打一局（打印全过程）
 ```
 
