@@ -140,6 +140,23 @@ const HAND = 'm1 m2 p1 p2 p3 s1 s2 s3 z1 z2 z5 z6 m5 m6 m7 m8';
         eq('重复花牌不重复计（实际不会出现）', r5.lazi.length, 0);
     }
 
+    /* ---------- 6. 白板当花：每张 1 台 ---------- */
+    console.log('\n--- 白板当花 ---');
+    {
+        const base = {
+            mianzi: [{ kind: 'shunzi', tile: 'm1', n_joker: 0 }],
+            pair:  { tile: 'm9', n_joker: 0 },
+            jokers: 0, seat: 0, zimo: false, rule,
+        };
+
+        const r1 = Score.score({ ...base, flowers: [], baiban: 2 });
+        const t  = r1.tai_list.find(x => x.name === '白板');
+        ok('两张白板计 2 台', !! t && t.tai === 2, JSON.stringify(r1.tai_list));
+
+        const r2 = Score.score({ ...base, flowers: [], baiban: 0 });
+        eq('没有白板就不计这台', r2.tai_list.some(x => x.name === '白板'), false);
+    }
+
     console.log(fail === 0 ? '\n✓ 全部通过' : `\n✗ ${fail} 项失败`);
     process.exitCode = fail ? 1 : 0;
 })();
