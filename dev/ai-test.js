@@ -141,6 +141,46 @@ function random_policy(seed) {
     console.log(`${ok ? '✓' : '✗'} AI 桌和牌数显著高于随机桌`);
     if (!ok) fail++;
 
+    /* ---------- 5. A/B：有效牌是否扣除已见牌 ---------- */
+    const M = 80;
+    console.log(`\n--- A/B：扣已见牌（P0,P2） vs 不扣（P1,P3），${M} 局 ---`);
+    {
+        let seenScore = 0, seenWin = 0, baseScore = 0, baseWin = 0;
+
+        for (let seed = 1; seed <= M; seed++) {
+            const withSeen = AI.create_policy();               // 扣已见牌
+            const noSeen   = AI.create_policy({ seen: false }); // 旧行为
+            const pick = c => (c.player === 0 || c.player === 2) ? withSeen : noSeen;
+
+            const policy = {
+                dapai:  (h, c) => pick(c).dapai(h, c),
+                hu_zimo: () => true,
+                hu_rong: () => true,
+                pon:    (h, t, c) => pick(c).pon(h, t),
+                gang:   () => false,
+                chi:    (h, o, c) => pick(c).chi(h, o),
+                self_gang: () => null,
+            };
+
+            const g = new Game(rule, policy, { seed: seed * 7919 });
+            g.kaiju();
+            const r = await g.run();
+
+            for (let i = 0; i < 4; i++) {
+                const isSeen = (i === 0 || i === 2);
+                if (isSeen) { seenScore += r.delta[i]; if (r.type === 'hule' && r.winner === i) seenWin++ }
+                else        { baseScore += r.delta[i]; if (r.type === 'hule' && r.winner === i) baseWin++ }
+            }
+        }
+
+        console.log(`  扣已见牌 : 和牌 ${seenWin}  均分 ${(seenScore / (2 * M)).toFixed(1)}`);
+        console.log(`  不扣     : 和牌 ${baseWin}  均分 ${(baseScore / (2 * M)).toFixed(1)}`);
+
+        const better = seenWin >= baseWin;
+        console.log(`${better ? '✓' : '✗'} 扣除已见牌后不弱于旧版`);
+        if (!better) fail++;
+    }
+
     console.log(fail === 0 ? '\n✓ 全部通过' : `\n✗ ${fail} 项失败`);
     process.exitCode = fail ? 1 : 0;
 })();
