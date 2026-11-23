@@ -7,6 +7,7 @@
 const Wenling = require('../lib');
 const Game    = require('../lib/game');
 const Shoupai = require('../lib/shoupai');
+const Score   = require('../lib/score');
 
 const rule = Wenling.rule();
 const J = 'f1';        // 不存在的财神种 = 没有财神
@@ -111,6 +112,32 @@ const HAND = 'm1 m2 p1 p2 p3 s1 s2 s3 z1 z2 z5 z6 m5 m6 m7 m8';
         const claim = await g._claim(3, 'm3');
         eq('吃牌的只能是打牌者的下家（P0）', claim && claim.player, 0);
         eq('宣言类型是吃', claim && claim.type, 'chi');
+    }
+
+    /* ---------- 5. 腊子只看自己收的花 ---------- */
+    console.log('\n--- 腊子：一家同时拥有才成立 ---');
+    {
+        const base = {
+            mianzi: [{ kind: 'shunzi', tile: 'm1', n_joker: 0 }],
+            pair:  { tile: 'm9', n_joker: 0 },
+            jokers: 0, seat: 0, zimo: false, rule,
+        };
+
+        const r1 = Score.score({ ...base, flowers: ['f5', 'f6', 'f7', 'f8'] });
+        eq('自己集齐四季花（春夏秋冬）→ 四红花', r1.lazi.join(','), '四红花');
+        eq('腊子按封顶算', r1.defen, rule['腊子封顶']);
+
+        const r2 = Score.score({ ...base, flowers: ['f1', 'f2', 'f3', 'f4'] });
+        eq('自己集齐四君子（梅兰竹菊）→ 四黑花', r2.lazi.join(','), '四黑花');
+
+        const r3 = Score.score({ ...base, flowers: ['f5', 'f6', 'f7'] });
+        eq('只有 3 张红花 → 不是腊子', r3.lazi.length, 0);
+
+        const r4 = Score.score({ ...base, flowers: ['f5', 'f6', 'f1', 'f2'] });
+        eq('红黑各 2 张 → 不是腊子', r4.lazi.length, 0);
+
+        const r5 = Score.score({ ...base, flowers: ['f5', 'f5'] });
+        eq('重复花牌不重复计（实际不会出现）', r5.lazi.length, 0);
     }
 
     console.log(fail === 0 ? '\n✓ 全部通过' : `\n✗ ${fail} 项失败`);
