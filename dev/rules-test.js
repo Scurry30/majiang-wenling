@@ -157,6 +157,52 @@ const HAND = 'm1 m2 p1 p2 p3 s1 s2 s3 z1 z2 z5 z6 m5 m6 m7 m8';
         eq('没有白板就不计这台', r2.tai_list.some(x => x.name === '白板'), false);
     }
 
+    /* ---------- 7. 碰中发 +1 台 / 字牌暗杠才是腊子 ---------- */
+    console.log('\n--- 碰中发 / 字牌暗杠 ---');
+    {
+        const shunzi = (t) => ({ kind: 'shunzi', tile: t, n_joker: 0 });
+        const base = {
+            mianzi: [shunzi('m1'), shunzi('m4')],
+            pair:  { tile: 'm9', n_joker: 0 },
+            jokers: 0, seat: 0, zimo: false, rule,
+        };
+
+        /* 碰中：明刻 z7 */
+        const pon = (t, angang = false) => ({ kind: 'gang', tile: t, angang, fulou: ! angang, n_joker: 0 });
+        const kezi = (t) => ({ kind: 'kezi', tile: t, fulou: true, n_joker: 0 });
+
+        let r = Score.score({ ...base, mianzi: [...base.mianzi, kezi('z7')] });
+        const t1 = r.tai_list.find(x => x.name === '碰中发');
+        ok('碰中计 1 台', !! t1 && t1.tai === 1, JSON.stringify(r.tai_list));
+
+        r = Score.score({ ...base, mianzi: [...base.mianzi, kezi('z6'), kezi('z7')] });
+        const t2 = r.tai_list.find(x => x.name === '碰中发');
+        ok('碰发 + 碰中共 2 台', !! t2 && t2.tai === 2, JSON.stringify(r.tai_list));
+
+        /* 暗杠中 → 腊子；明杠/补杠不算 */
+        const angang = { kind: 'gang', tile: 'z7', angang: true, fulou: false, n_joker: 0 };
+        r = Score.score({ ...base, mianzi: [...base.mianzi, angang] });
+        ok('暗杠中 → 腊子', r.lazi.includes('字牌暗杠'), r.lazi.join(','));
+
+        const minggang = { kind: 'gang', tile: 'z7', angang: false, fulou: true, n_joker: 0 };
+        r = Score.score({ ...base, mianzi: [...base.mianzi, minggang] });
+        eq('明杠中不算腊子', r.lazi.length, 0);
+        eq('明杠中按明杠硬张计 16 胡',
+           Score.mianzi_hutou(minggang, rule), 16 );
+
+        const kakan = { kind: 'gang', tile: 'z7', angang: false, fulou: true, n_joker: 0 };
+        r = Score.score({ ...base, mianzi: [...base.mianzi, kakan] });
+        eq('补杠中不算腊子', r.lazi.length, 0);
+
+        /* 门风暗杠（东家杠东） */
+        r = Score.score({ ...base, mianzi: [...base.mianzi, { kind: 'gang', tile: 'z1', angang: true, n_joker: 0 }] });
+        ok('门风暗杠 → 腊子', r.lazi.includes('字牌暗杠'), r.lazi.join(','));
+
+        /* 闲家杠东（不是自己门风）不算 */
+        r = Score.score({ ...base, seat: 2, mianzi: [...base.mianzi, { kind: 'gang', tile: 'z1', angang: true, n_joker: 0 }] });
+        eq('非门风的暗杠不算腊子', r.lazi.length, 0);
+    }
+
     console.log(fail === 0 ? '\n✓ 全部通过' : `\n✗ ${fail} 项失败`);
     process.exitCode = fail ? 1 : 0;
 })();
