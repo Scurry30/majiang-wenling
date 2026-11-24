@@ -149,18 +149,18 @@ const HAND = 'm1 m2 p1 p2 p3 s1 s2 s3 z1 z2 z5 z6 m5 m6 m7 m8';
             jokers: 0, seat: 0, zimo: false, rule,
         };
 
-        const r1 = Score.score({ ...base, flowers: [], baiban: 2 });
+        const r1 = Score.score({ ...base, flowers: [], baiban: ['z5', 'z5'] });
         const t  = r1.tai_list.find(x => x.name === '白板');
         ok('两张白板计 2 台', !! t && t.tai === 2, JSON.stringify(r1.tai_list));
 
-        const r2 = Score.score({ ...base, flowers: [], baiban: 0 });
+        const r2 = Score.score({ ...base, flowers: [], baiban: [] });
         eq('没有白板就不计这台', r2.tai_list.some(x => x.name === '白板'), false);
 
-        const r3 = Score.score({ ...base, flowers: [], baiban: 4 });
+        const r3 = Score.score({ ...base, flowers: [], baiban: ['z5', 'z5', 'z5', 'z5'] });
         ok('集齐 4 张白板 → 腊子', r3.lazi.includes('四白板'), r3.lazi.join(','));
         eq('四白板按封顶算', r3.defen, rule['腊子封顶']);
 
-        const r4 = Score.score({ ...base, flowers: [], baiban: 3 });
+        const r4 = Score.score({ ...base, flowers: [], baiban: ['z5', 'z5', 'z5'] });
         eq('只有 3 张白板 → 不是腊子', r4.lazi.length, 0);
     }
 

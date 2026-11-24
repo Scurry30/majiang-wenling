@@ -39,6 +39,11 @@ for (let seed = 1; seed <= N; seed++) {
     if (rule['白板当花'] && joker !== 'z5') {
         check(qipai.every(h => h.every(p => p !== 'z5')), '手牌无残留白板', seed);
     }
+    /* 红中当财神时，发也当花 */
+    if (rule['发当花'] && joker === 'z7') {
+        check(qipai.every(h => h.every(p => p !== 'z6')), '红中财神时手牌无发', seed);
+        check(baiban.reduce((a, f) => a + f.filter(p => p === 'z6').length, 0) >= 0, '发计入当花', seed);
+    }
 
     const in_hand = qipai.reduce((a, h) => a + h.filter(p => p === joker).length, 0);
     const avail   = in_hand + shan.joker_remain;
