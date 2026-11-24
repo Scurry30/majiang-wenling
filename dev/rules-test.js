@@ -155,6 +155,13 @@ const HAND = 'm1 m2 p1 p2 p3 s1 s2 s3 z1 z2 z5 z6 m5 m6 m7 m8';
 
         const r2 = Score.score({ ...base, flowers: [], baiban: 0 });
         eq('没有白板就不计这台', r2.tai_list.some(x => x.name === '白板'), false);
+
+        const r3 = Score.score({ ...base, flowers: [], baiban: 4 });
+        ok('集齐 4 张白板 → 腊子', r3.lazi.includes('四白板'), r3.lazi.join(','));
+        eq('四白板按封顶算', r3.defen, rule['腊子封顶']);
+
+        const r4 = Score.score({ ...base, flowers: [], baiban: 3 });
+        eq('只有 3 张白板 → 不是腊子', r4.lazi.length, 0);
     }
 
     /* ---------- 7. 碰中发 +1 台 / 字牌暗杠才是腊子 ---------- */
