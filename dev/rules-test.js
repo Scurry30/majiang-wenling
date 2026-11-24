@@ -91,10 +91,10 @@ const HAND = 'm1 m2 p1 p2 p3 s1 s2 s3 z1 z2 z5 z6 m5 m6 m7 m8';
         g3._zhuang = 0;
         g3._jushu  = 2;
         g3._pingju();
-        eq('流局下庄', g3.zhuang, 1);
-        eq('流局局数 +1', g3.jushu, 3);
-        eq('流局本场清零', g3.changbang, 0);
-        eq('局名', g3.jushu_name(), '东四局');
+        eq('流局庄家连庄', g3.zhuang, 0);
+        eq('流局局数不变', g3.jushu, 2);
+        eq('流局本场 +1', g3.changbang, 1);
+        eq('局名', g3.jushu_name(), '东三局');
     }
 
     /* ---------- 4. 吃牌方向 ---------- */

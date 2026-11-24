@@ -87,7 +87,8 @@ function random_policy(seed, claimRate = 0.3) {
         eq('无鸣牌时打到流局', r.type, 'pingju');
         eq('流局零和', r.delta.reduce((a, b) => a + b, 0), 0);
         ok('流局时牌墙不超过 16 张', game.shan.paishu <= 16, `实际 ${game.shan.paishu}`);
-        eq('流局下庄', game.zhuang, 1);
+        eq('流局庄家连庄', game.zhuang, 0);
+        eq('流局本场 +1', game.changbang, 1);
     }
 
     /* ---------- 3. 压力测试 ---------- */
@@ -127,7 +128,8 @@ function random_policy(seed, claimRate = 0.3) {
     console.log(`  和牌 ${hule} 局 / 流局 ${pingju} 局`);
     console.log(`  最高台数 ${maxTai}，腊子 ${lazi} 次`);
     console.log(`  鸣牌统计: 吃 ${chis} / 碰 ${pons} / 杠 ${gangs}`);
-    ok('有和牌产生（和牌路径被覆盖）', hule > 0, `和牌 ${hule}`);
+    if (N >= 100) ok('有和牌产生（和牌路径被覆盖）', hule > 0, `和牌 ${hule}`);
+    else console.log('  （局数较少，跳过「必须出现和牌」的断言）');
     ok(`全部 ${N} 局无异常且零和`, fail === 0, `失败 ${fail} 项`);
 
     console.log(fail === 0 ? '\n✓ 全部通过' : `\n✗ ${fail} 项失败`);
