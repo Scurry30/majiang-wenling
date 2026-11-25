@@ -210,6 +210,37 @@ const HAND = 'm1 m2 p1 p2 p3 s1 s2 s3 z1 z2 z5 z6 m5 m6 m7 m8';
         eq('非门风的暗杠不算腊子', r.lazi.length, 0);
     }
 
+    /* ---------- 8. 财神归位 / 双财神作将 ---------- */
+    console.log('\n--- 财神归位 / 双财神作将 ---');
+    {
+        const H = require('../lib/hule');
+
+        /* 5 组面子 + 两张财神当将（财神是 西 z3） */
+        const pai = ['m1','m2','m3','m4','m5','m6','p1','p2','p3','p4','p5','p6',
+                     's1','s2','s3','z3','z3'];
+        ok('两张财神当将', H.is_double_joker_pair(pai, 'z3', 0));
+        eq('只剩一张财神当将不算', H.is_double_joker_pair(pai.slice(0, 16), 'z3', 0), false);
+
+        const shunzi = (t) => ({ kind: 'shunzi', tile: t, n_joker: 0 });
+        const sets = [shunzi('m1'), shunzi('m4'), shunzi('p1'), shunzi('p4'), shunzi('s1')];
+        const base2 = { mianzi: sets, pair: { tile: 'z3', n_joker: 2 }, flowers: [],
+                        jokers: 2, seat: 0, zimo: false, rule };
+
+        let r = Score.score({ ...base2, double_joker_pair: true, guiwei: false });
+        const t1 = r.tai_list.find(x => x.name === '双财神作将');
+        ok('双财神作将计 1 台', !! t1 && t1.tai === 1, JSON.stringify(r.tai_list));
+        eq('双财神作将时不算归位', r.tai_list.some(x => x.name === '财神归位'), false);
+
+        r = Score.score({ ...base2, pair: { tile: 'm9', n_joker: 0 },
+                          jokers: 1, guiwei: true, double_joker_pair: false });
+        const t2 = r.tai_list.find(x => x.name === '财神归位');
+        ok('财神归位计 1 台', !! t2 && t2.tai === 1, JSON.stringify(r.tai_list));
+
+        eq('没归位就没这台',
+           Score.score({ ...base2, jokers: 1, guiwei: false }).tai_list.some(x => x.name === '财神归位'),
+           false);
+    }
+
     console.log(fail === 0 ? '\n✓ 全部通过' : `\n✗ ${fail} 项失败`);
     process.exitCode = fail ? 1 : 0;
 })();
