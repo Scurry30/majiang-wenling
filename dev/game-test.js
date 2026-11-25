@@ -91,6 +91,22 @@ function random_policy(seed, claimRate = 0.3) {
         eq('流局本场 +1', game.changbang, 1);
     }
 
+    /* ---------- 2.5 庄家不是 P0 时的手牌张数 ---------- */
+    console.log('\n--- 换庄后的配牌 ---');
+    for (const d of [1, 2, 3]) {
+        const game = new Game(rule, {}, { seed: 900 + d, zhuang: d });
+        game.kaiju();
+        eq(`庄家 P${d} 开局 17 张`, game.hands[d].pai.length, 17);
+        eq(`P0 在庄家是 P${d} 时只有 16 张`, game.hands[0].pai.length, 16);
+
+        let maxlen = 0;
+        game._on_update = () => game.hands.forEach(h => {
+            if (h.pai.length > maxlen) maxlen = h.pai.length;
+        });
+        await game.run();
+        ok(`庄家 P${d} 整局没人超过 17 张`, maxlen <= 17, `最多 ${maxlen} 张`);
+    }
+
     /* ---------- 3. 压力测试 ---------- */
     const N = process.argv[2] ? +process.argv[2] : 200;
     console.log(`\n--- 压力测试 ${N} 局 ---`);

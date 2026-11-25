@@ -64,8 +64,23 @@ for (let seed = 1; seed <= N; seed++) {
     check(qipai[0].length - qipai[1].length === 1, '庄闲张数差 1', seed);
 }
 
-console.log(`\n跑完 ${N} 局：`);
-console.log(`  翻出普通牌作财神: ${stat.joker_normal} 局`);
+/* 庄家换人时要发到正确的座位上（P0 不是庄家时尤其重要） */
+for (const d of [1, 2, 3]) {
+    for (let seed = 1; seed <= 50; seed++) {
+        const r = Wenling.qipai(rule, seed * 100 + d, d);
+        check(r.qipai[d].length === 17,
+              `庄家座位 ${d} 应 17 张（实际 ${r.qipai[d].length}）`, seed * 100 + d);
+        check([0, 1, 2, 3].filter(i => i !== d).every(i => r.qipai[i].length === 16),
+              `闲家应 16 张（庄家座位 ${d}）`, seed * 100 + d);
+        const total2 = r.qipai.reduce((a, h) => a + h.length, 0)
+                     + r.flowers.reduce((a, f) => a + f.length, 0)
+                     + r.baiban.reduce((a, f) => a + f.length, 0)
+                     + 1 + r.shan.paishu;
+        check(total2 === 144, `庄家座位 ${d} 张数守恒 144（实际 ${total2}）`, seed * 100 + d);
+    }
+}
+
+console.log(`\n跑完 ${N} 局：`);console.log(`  翻出普通牌作财神: ${stat.joker_normal} 局`);
 console.log(`  翻出花牌作财神  : ${stat.joker_flower} 局`);
 console.log(`  平均每局花牌数  : ${(stat.total_flowers / N).toFixed(2)} 张（8 张花牌散布在 144 张里，期望约 3.6 张被摸到）`);
 console.log(`  平均庄家花牌数  : ${(stat.dealer_flowers / N).toFixed(2)} 张`);
