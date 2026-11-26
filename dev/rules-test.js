@@ -275,6 +275,27 @@ const HAND = 'm1 m2 p1 p2 p3 s1 s2 s3 z1 z2 z5 z6 m5 m6 m7 m8';
            Score.base_hutou({ ...nao_ctx, joker: 'z7', mianzi: [shunzi('m1')] }), 2);
     }
 
+    /* ---------- 10. 闹闹时中发白不能碰杠 ---------- */
+    console.log('\n--- 闹闹时不能碰中发白 ---');
+    {
+        const pai = ['m1','m2','m3','p1','p2','p3','s1','s2','s3','z7','z7','z7',
+                     'm5','m5','m5','p5','p5'];
+
+        const nao = Wenling.Shoupai.from(pai, rule, 'z6');     // 财神发 → 闹闹
+        eq('闹闹时不能碰中', nao.can_pon('z7'), false);
+        eq('闹闹时不能杠中', nao.can_gang('z7'), false);
+        eq('闹闹时财神本身也不能碰', nao.can_pon('z6'), false);
+
+        const normal = Wenling.Shoupai.from(pai, rule, 'm9');  // 普通财神
+        eq('平时可以碰中', normal.can_pon('z7'), true);
+        eq('平时可以杠中', normal.can_gang('z7'), true);
+
+        /* 闹闹时暗刻仍然可以，且胡头按花算 */
+        eq('闹闹暗刻中胡头 12',
+           Score.base_hutou({ mianzi: [{ kind:'kezi', tile:'z7', fulou:false, n_joker:0 }],
+                              pair: null, flowers: [], jokers: 0, nao: true, joker: 'z6', rule }), 12);
+    }
+
     console.log(fail === 0 ? '\n✓ 全部通过' : `\n✗ ${fail} 项失败`);
     process.exitCode = fail ? 1 : 0;
 })();
