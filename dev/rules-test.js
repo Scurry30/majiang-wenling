@@ -162,6 +162,14 @@ const HAND = 'm1 m2 p1 p2 p3 s1 s2 s3 z1 z2 z5 z6 m5 m6 m7 m8';
 
         const r4 = Score.score({ ...base, flowers: [], baiban: ['z5', 'z5', 'z5'] });
         eq('只有 3 张白板 → 不是腊子', r4.lazi.length, 0);
+
+        /* 闹闹时中/发也当花：每张 1 台 */
+        const bb = ['z6', 'z6', 'z7'];
+        const r5 = Score.score({ ...base, flowers: [], baiban: bb });
+        eq('发当花 2 台', (r5.tai_list.find(x => x.name === '发当花') || {}).tai, 2);
+        eq('中当花 1 台', (r5.tai_list.find(x => x.name === '中当花') || {}).tai, 1);
+        eq('当花的中发也按 4 胡算',
+           Score.base_hutou({ ...base, baiban: bb, rule }), 12 + 2);
     }
 
     /* ---------- 7. 碰中发 +1 台 / 字牌暗杠才是腊子 ---------- */

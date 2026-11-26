@@ -42,7 +42,13 @@ for (let seed = 1; seed <= N; seed++) {
     /* 红中当财神时，发也当花 */
     if (rule['发当花'] && joker === 'z7') {
         check(qipai.every(h => h.every(p => p !== 'z6')), '红中财神时手牌无发', seed);
-        check(baiban.reduce((a, f) => a + f.filter(p => p === 'z6').length, 0) >= 0, '发计入当花', seed);
+    }
+    /* 闹闹（财神是中发白/花）时，非财神的中发白一律当花 */
+    const nao = ['z5', 'z6', 'z7'].includes(joker) || Pai.is_flower(joker);
+    if (nao && rule['闹闹中发白当花']) {
+        const leftover = qipai.some(h => h.some(p =>
+            ['z5', 'z6', 'z7'].includes(p) && p !== joker));
+        check(! leftover, '闹闹时手牌无中发白（财神除外）', seed);
     }
 
     const in_hand = qipai.reduce((a, h) => a + h.filter(p => p === joker).length, 0);
