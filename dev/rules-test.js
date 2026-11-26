@@ -241,6 +241,40 @@ const HAND = 'm1 m2 p1 p2 p3 s1 s2 s3 z1 z2 z5 z6 m5 m6 m7 m8';
            false);
     }
 
+    /* ---------- 9. 胡头表 & 闹闹 ---------- */
+    console.log('\n--- 胡头 ---');
+    {
+        const shunzi = (t) => ({ kind: 'shunzi', tile: t, n_joker: 0 });
+        const kezi   = (t, fulou = true) => ({ kind: 'kezi', tile: t, fulou, n_joker: 0 });
+        const base   = {
+            mianzi: [shunzi('m1')],
+            pair:  { tile: 'm9', n_joker: 0 },
+            flowers: [], jokers: 0, seat: 0, zimo: false, rule,
+        };
+
+        eq('碰软张 2 胡',  Score.mianzi_hutou(kezi('m5'), rule), 2);
+        eq('碰硬张 4 胡',  Score.mianzi_hutou(kezi('z6'), rule), 4);
+        eq('暗刻硬张 8 胡', Score.mianzi_hutou(kezi('z6', false), rule), 8);
+        eq('明杠硬张 16 胡', Score.mianzi_hutou({ kind:'gang', tile:'z6', fulou:true,  angang:false, n_joker:0 }, rule), 16);
+        eq('暗杠硬张 32 胡', Score.mianzi_hutou({ kind:'gang', tile:'z6', fulou:false, angang:true,  n_joker:0 }, rule), 32);
+
+        /* 花牌 / 白板都是单张 4 胡 */
+        eq('两张花牌 8 胡（+ 将牌 2）', Score.base_hutou({ ...base, flowers: ['f1','f2'] }), 10);
+        eq('两张白板 8 胡（+ 将牌 2）', Score.base_hutou({ ...base, baiban: ['z5','z5'] }), 10);
+
+        /* 闹闹：非财神中发白等价于花，按张数算 */
+        const nao_ctx = { ...base, nao: true, joker: 'z6',
+                          mianzi: [{ kind:'kezi', tile:'z7', fulou:true, n_joker:0 }] };
+        eq('闹闹碰中按 3 张花算 12 胡', Score.base_hutou(nao_ctx), 12 + 2);
+        eq('闹闹暗刻中也是 12 胡',
+           Score.base_hutou({ ...nao_ctx, mianzi: [{ kind:'kezi', tile:'z7', fulou:false, n_joker:0 }] }), 12 + 2);
+        eq('闹闹杠中按 4 张花算 16 胡',
+           Score.base_hutou({ ...nao_ctx, mianzi: [{ kind:'gang', tile:'z7', angang:true, n_joker:0 }] }), 16 + 2);
+        /* 财神自己不算 */
+        eq('闹闹时财神那张不按花算',
+           Score.base_hutou({ ...nao_ctx, joker: 'z7', mianzi: [shunzi('m1')] }), 2);
+    }
+
     console.log(fail === 0 ? '\n✓ 全部通过' : `\n✗ ${fail} 项失败`);
     process.exitCode = fail ? 1 : 0;
 })();
