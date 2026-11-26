@@ -172,8 +172,8 @@ const HAND = 'm1 m2 p1 p2 p3 s1 s2 s3 z1 z2 z5 z6 m5 m6 m7 m8';
            Score.base_hutou({ ...base, baiban: bb, rule }), 12 + 2);
     }
 
-    /* ---------- 7. 碰中发 +1 台 / 字牌暗杠才是腊子 ---------- */
-    console.log('\n--- 碰中发 / 字牌暗杠 ---');
+    /* ---------- 7. 中发白刻子 1 台 / 字牌暗杠才是腊子 ---------- */
+    console.log('\n--- 中发白刻子 / 字牌暗杠 ---');
     {
         const shunzi = (t) => ({ kind: 'shunzi', tile: t, n_joker: 0 });
         const base = {
@@ -187,11 +187,14 @@ const HAND = 'm1 m2 p1 p2 p3 s1 s2 s3 z1 z2 z5 z6 m5 m6 m7 m8';
         const kezi = (t) => ({ kind: 'kezi', tile: t, fulou: true, n_joker: 0 });
 
         let r = Score.score({ ...base, mianzi: [...base.mianzi, kezi('z7')] });
-        const t1 = r.tai_list.find(x => x.name === '碰中发');
+        const t1 = r.tai_list.find(x => x.name === '中发白刻子');
         ok('碰中计 1 台', !! t1 && t1.tai === 1, JSON.stringify(r.tai_list));
 
+        r = Score.score({ ...base, mianzi: [...base.mianzi, { kind:'kezi', tile:'z7', fulou:false, n_joker:0 }] });
+        ok('暗刻中也算 1 台（不闹闹）', (r.tai_list.find(x => x.name === '中发白刻子') || {}).tai === 1, JSON.stringify(r.tai_list));
+
         r = Score.score({ ...base, mianzi: [...base.mianzi, kezi('z6'), kezi('z7')] });
-        const t2 = r.tai_list.find(x => x.name === '碰中发');
+        const t2 = r.tai_list.find(x => x.name === '中发白刻子');
         ok('碰发 + 碰中共 2 台', !! t2 && t2.tai === 2, JSON.stringify(r.tai_list));
 
         /* 暗杠中 → 腊子；明杠/补杠不算 */

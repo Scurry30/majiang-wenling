@@ -69,14 +69,16 @@ r = S.score(hunyise);
 eq('混一色台数', r.tai, 3);           // 混一色 2 + 硬胡 1（门风是西，z1 东不是门风）
 
 console.log('\n--- 闹闹 ---');
+/* 闹闹时中发白当花：不在手里，按张算台 */
 const naonao = {
-    mianzi: [shunzi('m1'), shunzi('m4'), shunzi('p1'), kezi('z6'), kezi('z7')],
-    pair: pair('m9'), flowers: [], jokers: 0, seat: 0, zimo: false,
+    mianzi: [shunzi('m1'), shunzi('m4'), shunzi('p1'), shunzi('m2'), shunzi('m5')],
+    pair: pair('m9'), flowers: [], baiban: ['z6', 'z7'], jokers: 0, seat: 0, zimo: false,
     nao: true, joker: 'z5', rule,
 };
 r = S.score(naonao);
 console.log('   台数明细:', r.tai_list.map(t => `${t.name}${t.tai}`).join(' '));
-eq('闹闹台数', r.tai, 3);             // 闹闹 2（发刻 + 中刻）+ 硬胡 1
+eq('闹闹台数（平胡 1 + 发 1 + 中 1 + 硬胡 1）', r.tai, 4);
+eq('当花的中发也算胡头（8 + 将 2 + 底胡 20）', r.hutou, 30);
 
 console.log('\n--- 腊子 ---');
 r = S.score({ ...pinghu, jokers: 3 });
